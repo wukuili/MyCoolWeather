@@ -41,9 +41,10 @@ public class Utility {
                     String[] array=p.split("\\|");//\\|是一个正则表达式  正则表达式中 要匹配|需要用\|
 //                    String[] array=p.split("|");
                     City city=new City();
-                    city.setProvinceId(provinceId);
+
                     city.setCityName(array[1]);
                     city.setCityCode(array[0]);
+                    city.setProvinceId(provinceId);
                     coolWeatherDB.saveCity(city);
                 }
                 return true;

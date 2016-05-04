@@ -44,6 +44,6 @@ public class HttpUtil {
             }
 
         }
-    }).run();
+    }).start ();
     }
 }

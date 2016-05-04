@@ -35,7 +35,7 @@ public class ChooseAreaActivity extends Activity {
     private ListView listView;
     private TextView titleText;
     private ArrayAdapter<String> adapter;
-    private List<String> dataList = new ArrayList<String>();
+    private List<String> dataList = new ArrayList<String> ();
     private CoolWeatherDB coolWeatherDB;
     /**
      * 省列表
@@ -64,129 +64,125 @@ public class ChooseAreaActivity extends Activity {
     private ProgressDialog progressDialog;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.choose_area);
-        listView = (ListView) findViewById(R.id.list_view);
-        titleText = (TextView) findViewById(R.id.title_text);
-        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, dataList);
-        listView.setAdapter(adapter);
-        coolWeatherDB = CoolWeatherDB.getInstance(this);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+    protected void onCreate (Bundle savedInstanceState) {
+        super.onCreate (savedInstanceState);
+        requestWindowFeature (Window.FEATURE_NO_TITLE);
+        setContentView (R.layout.choose_area);
+        listView = (ListView) findViewById (R.id.list_view);
+        titleText = (TextView) findViewById (R.id.title_text);
+        adapter = new ArrayAdapter<String> (this, android.R.layout.simple_list_item_1, dataList);
+        listView.setAdapter (adapter);
+        coolWeatherDB = CoolWeatherDB.getInstance (this);
+        listView.setOnItemClickListener (new AdapterView.OnItemClickListener () {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
                 if (currentLevel == LEVEL_PROVINCE) {
-                    selectedProvince = provinceList.get(position);
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            queryCities();
-                        }
-                    }).run();
+                    selectedProvince = provinceList.get (position);
+                    Log.e ("city",""+selectedProvince+"sddas"+position);
+                    queryCities ();
+
 
                 } else if (currentLevel == LEVEL_CITY) {
-                    selectedCity = cityList.get(position);
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            queryCounties();
-                        }
-                    }).run();
+                    selectedCity = cityList.get (position);
+
+                    queryCounties ();
+
 
                 }
             }
         });
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                queryProvinces();
-            }
-        }).run();
+        queryProvinces ();
+
 
     }
 
-    private void queryProvinces() {
-        provinceList = coolWeatherDB.loadProvinces();
-        if (provinceList.size() > 0) {
-            dataList.clear();
+    private void queryProvinces () {
+        provinceList = coolWeatherDB.loadProvinces ();
+        if (provinceList.size () > 0) {
+            dataList.clear ();
             for (Province province : provinceList
                     ) {
-                dataList.add(province.getProvinceName());
+                dataList.add (province.getProvinceName ());
             }
-            adapter.notifyDataSetChanged();
-            listView.setSelection(0);
-            titleText.setText("中国");
+            adapter.notifyDataSetChanged ();
+            listView.setSelection (0);
+            titleText.setText ("中国");
             currentLevel = LEVEL_PROVINCE;
         } else {
-            queryFromServer(null, "province");
+            queryFromServer (null, "province");
         }
     }
 
 
-    private void queryCounties() {
-        countyList=coolWeatherDB.loadCounties(selectedCity.getId());
-        if (countyList.size()>0){
-            dataList.clear();
-            for (County county:countyList
-                 ) {
-                dataList.add(county.getCountyName());
+    private void queryCounties () {
+        countyList = coolWeatherDB.loadCounties (selectedCity.getId ());
+        if (countyList.size () > 0) {
+            dataList.clear ();
+            for (County county : countyList
+                    ) {
+                dataList.add (county.getCountyName ());
 
             }
-            adapter.notifyDataSetChanged();
-            listView.setSelection(0);
-            titleText.setText(selectedCity.getCityName());
-            currentLevel=LEVEL_COUNTY;
-        }else {
-            queryFromServer(selectedCity.getCityCode(),"county");
+            adapter.notifyDataSetChanged ();
+            listView.setSelection (0);
+            titleText.setText (selectedCity.getCityName ());
+            currentLevel = LEVEL_COUNTY;
+        } else {
+            queryFromServer (selectedCity.getCityCode (), "county");
         }
     }
 
-    private void queryCities() {
-        cityList=coolWeatherDB.loadCities(selectedProvince.getId());
-        if (cityList.size()>0){
-            dataList.clear();
+    private void queryCities () {
+        cityList = coolWeatherDB.loadCities (selectedProvince.getId ());
+        Log.e ("city", "city" + cityList);
+        if (cityList.size () > 0) {
+            dataList.clear ();
             for (City city :
                     cityList) {
-                dataList.add(city.getCityName());
+                dataList.add (city.getCityName ());
             }
-        }else {
-            queryFromServer(selectedProvince.getProvinceCode(),"city");
+            adapter.notifyDataSetChanged ();
+            listView.setSelection (0);
+            titleText.setText (selectedProvince.getProvinceName ());
+            currentLevel = LEVEL_CITY;
+        } else {
+            queryFromServer (selectedProvince.getProvinceCode (), "city");
         }
     }
 
-    private void queryFromServer(final String code, final String type) {
+    private void queryFromServer (final String code, final String type) {
         String address;
-        if (!TextUtils.isEmpty(code)) {
+        if (!TextUtils.isEmpty (code)) {
             address = "http://www.weather.com.cn/data/list3/city" + code + ".xml";
         } else {
             address = "http://www.weather.com.cn/data/list3/city.xml";
         }
-        showProgressDialog();
+        showProgressDialog ();
 
-        HttpUtil.sendHttpRequest(address, new HttpCallbackListener() {
+        HttpUtil.sendHttpRequest (address, new HttpCallbackListener () {
             @Override
-            public void onFinish(String response) {
+            public void onFinish (String response) {
                 boolean result = false;
-                if ("province".equals(type)) {
-                    result = Utility.handleProvincesResponse(coolWeatherDB, response);
-                } else if ("city".equals(type)) {
-                    result = Utility.handleCitiesResponse(coolWeatherDB, response,selectedProvince.getId());
-                } else if ("county".equals(type)) {
-                    result = Utility.handleCountiesResponse(coolWeatherDB, response,selectedCity.getId());
+                if ("province".equals (type)) {
+                    result = Utility.handleProvincesResponse (coolWeatherDB, response);
+                } else if ("city".equals (type)) {
+                    result = Utility.handleCitiesResponse (coolWeatherDB, response, selectedProvince.getId ());
+                    Log.e ("city", "" + result);
+                } else if ("county".equals (type)) {
+                    result = Utility.handleCountiesResponse (coolWeatherDB, response, selectedCity.getId ());
                 }
                 if (result) {
                     //通过runOnUiThread（）方法回到主线程处理逻辑
-                    runOnUiThread(new Runnable() {
+                    runOnUiThread (new Runnable () {
                         @Override
-                        public void run() {
-                            closeProgressDialog();
-                            if ("province".equals(type)) {
-                                queryProvinces();
-                            } else if ("city".equals(type)) {
-                                queryCities();
-                            } else if ("county".equals(type)) {
-                                queryCounties();
+                        public void run () {
+                            closeProgressDialog ();
+                            if ("province".equals (type)) {
+                                queryProvinces ();
+                            } else if ("city".equals (type)) {
+                                queryCities ();
+                            } else if ("county".equals (type)) {
+                                queryCounties ();
                             }
                         }
                     });
@@ -194,46 +190,46 @@ public class ChooseAreaActivity extends Activity {
             }
 
             @Override
-            public void onError(final Exception e) {
+            public void onError (final Exception e) {
 //通过runOnUiThread（）方法回到主线程处理逻辑
-                runOnUiThread(new Runnable() {
+                runOnUiThread (new Runnable () {
                     @Override
-                    public void run() {
-                        closeProgressDialog();
-                        Toast.makeText(ChooseAreaActivity.this, "加载失败"+e, Toast.LENGTH_LONG).show();
-                        Log.e("weather","失败了"+e);
+                    public void run () {
+                        closeProgressDialog ();
+                        Toast.makeText (ChooseAreaActivity.this, "加载失败" + e, Toast.LENGTH_LONG).show ();
+                        Log.e ("weather", "失败了" + e);
                     }
                 });
             }
         });
     }
 
-    private void closeProgressDialog() {
-        if (progressDialog!=null){
-            progressDialog.dismiss();
+    private void closeProgressDialog () {
+        if (progressDialog != null) {
+            progressDialog.dismiss ();
         }
     }
 
     /**
      * 显示进度对话框
      */
-    private void showProgressDialog() {
-    if (progressDialog==null){
-        progressDialog=new ProgressDialog(this);
-        progressDialog.setMessage("正在加载...");
-        progressDialog.setCanceledOnTouchOutside(false);
-    }
-        progressDialog.show();
+    private void showProgressDialog () {
+        if (progressDialog == null) {
+            progressDialog = new ProgressDialog (this);
+            progressDialog.setMessage ("正在加载...");
+            progressDialog.setCanceledOnTouchOutside (false);
+        }
+        progressDialog.show ();
     }
 
     @Override
-    public void onBackPressed() {
-        if (currentLevel==LEVEL_COUNTY){
-            queryCities();
-        }else if (currentLevel==LEVEL_CITY){
-            queryProvinces();
-        }else {
-            finish();
+    public void onBackPressed () {
+        if (currentLevel == LEVEL_COUNTY) {
+            queryCities ();
+        } else if (currentLevel == LEVEL_CITY) {
+            queryProvinces ();
+        } else {
+            finish ();
         }
     }
 }
